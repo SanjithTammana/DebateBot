@@ -1,0 +1,6 @@
+groq==0.9.0
+streamlit==1.37.0
+scikit-learn
+docx2txt
+PyPDF2
+Pillow  # For image processing
