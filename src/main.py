@@ -1,6 +1,5 @@
 import os
 import streamlit as st
-import toml
 from groq import Groq
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -86,25 +85,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Correctly set the path to the configuration file
-working_dir = os.path.dirname(os.path.abspath(__file__))
-config_file_path = os.path.join(working_dir, 'configuration.toml')
-
-# Ensure the configuration file exists
-if not os.path.exists(config_file_path):
-    st.error(f"Configuration file not found at {config_file_path}")
-    st.stop()
-
-# Load the configuration file
-config_data = toml.load(config_file_path)
-
-GROQ_API_KEY = config_data.get("GROQ_API_KEY")
+# Retrieve the API key from environment variables
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 if not GROQ_API_KEY:
-    st.error("GROQ API key not found in the configuration file.")
+    st.error("GROQ API key not found. Please set the GROQ_API_KEY environment variable.")
     st.stop()
 
-# Save the API key to the environment variable
+# Set the API key in the environment
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
 
 client = Groq()
@@ -129,6 +117,7 @@ systemPrompt = (
 )
 
 # Load the knowledge base into memory with utf-8 encoding
+working_dir = os.path.dirname(os.path.abspath(__file__))
 knowledge_base_path = os.path.join(working_dir, 'debate_data.txt')
 with open(knowledge_base_path, 'r', encoding='utf-8') as f:
     knowledge_base = f.read()
