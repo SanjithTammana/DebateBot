@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-import json
+import toml
 from groq import Groq
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -87,7 +87,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 working_dir = os.path.dirname(os.path.abspath(__file__))
-config_data = json.load(open(f"{working_dir}/configuration.json", encoding='utf-8'))
+config_data = toml.load(f"{working_dir}/configuration.toml")
 
 GROQ_API_KEY = config_data["GROQ_API_KEY"]
 
