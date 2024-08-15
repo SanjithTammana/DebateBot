@@ -1,6 +1,15 @@
-groq==0.9.0
-streamlit==1.37.0
+langchain~=0.2.12
+langchain-pinecone
+streamlit~=1.37.0
+huggingface-hub
+transformers
+sentence-transformers
 scikit-learn
-docx2txt
-PyPDF2
-Pillow  # For image processing
+numpy
+tiktoken
+pypdf2
+docx2txt~=0.8
+openai
+Pinecone-client
+Unstructured
+Torch

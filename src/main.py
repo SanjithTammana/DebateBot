@@ -4,14 +4,90 @@ import json
 from groq import Groq
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-# Streamlit page configuration
+# Streamlit page configuration - MUST be the first Streamlit command
 st.set_page_config(
     page_title="DebateBot",
     layout="centered"
 )
 
+# Custom CSS for dark theme and neon blue effects
+st.markdown("""
+    <style>
+        /* Background color for the entire app */
+        .main {
+            background-color: #000000;
+            color: white;
+        }
+
+        /* Title styling with neon blue effect */
+        h1, h2, h3, h4, h5, h6 {
+            color: white;
+            text-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 30px #00FFFF, 0 0 40px #00FFFF, 0 0 50px #00FFFF;
+        }
+
+        /* Chat input styling */
+        .stTextInput > div > div > input {
+            background-color: #1a1a1a;
+            color: white;
+            border: 1px solid #00FFFF;
+            border-radius: 10px;
+        }
+
+        /* Chat message background and text color */
+        .stChatMessage {
+            background-color: #1a1a1a;
+            color: white;
+            border: 1px solid #00FFFF;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Customize the markdown text */
+        .stMarkdown p {
+            color: white;
+        }
+
+        /* Styling for the chat input container */
+        .stChatInput > div {
+            background-color: #1a1a1a;
+            border: 1px solid #00FFFF;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        /* Styling for the chat input text area */
+        .stChatInput > div > div > textarea {
+            background-color: #1a1a1a;
+            color: white;
+            border: none;
+            outline: none;
+            box-shadow: none;
+        }
+
+        /* Placeholder text color in the chat input */
+        ::placeholder {
+            color: #cccccc;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #00FFFF;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: #1a1a1a;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 working_dir = os.path.dirname(os.path.abspath(__file__))
-config_data = json.load(open(f"{working_dir}/config.json", encoding='utf-8'))
+config_data = json.load(open(f"{working_dir}/configuration.json", encoding='utf-8'))
 
 GROQ_API_KEY = config_data["GROQ_API_KEY"]
 
@@ -34,49 +110,9 @@ for message in st.session_state.chat_history:
 
 # Define the system prompt
 systemPrompt = (
-    'You are an advanced debate analytics AI specializing in High School Lincoln-Douglas (LD) and Policy debate formats. '
-    'Your primary function is to generate highly effective, strategic analytics, overviews, and rebuttals for various debate rounds. '
-    'You are equipped with deep knowledge in multiple areas, including Theory/Topicality, Kritiks, Policy-style arguments (LARP in LD), '
-    'Philosophy-style arguments (LD specific), and Tricks (LD specific). Additionally, you possess a comprehensive understanding of '
-    'philosophy, critical theory, and the nuances of both LD and Policy debate strategies. '
-
-    'Core Capabilities: '
-
-    'Theory/Topicality Mastery: You can analyze and generate arguments related to Theory and Topicality, including common shells and '
-    'nuanced interpretations. You understand the strategic application of theory in both offensive and defensive contexts. '
-
-    'Kritik Expertise: You are well-versed in Kritiks, with the ability to unpack complex critical literature, generate alternative '
-    'frameworks, and engage with kritik arguments on multiple levels, including links, impacts, and alternative strategies. '
-
-    'Policy-style Arguments (LARP in LD): You can construct and critique Policy-style arguments within LD, understanding the '
-    'application of plans, counterplans, and solvency mechanisms. You are adept at crafting and responding to detailed policy scenarios, '
-    'including cost-benefit analysis, understanding of fiat, and permutation debates. '
-
-    'Philosophy-style Arguments (LD Specific): You possess a wide-ranging philosophical knowledge base, allowing you to engage with '
-    'traditional LD frameworks such as Deontology, Consequentialism, Virtue Ethics, and more. You can articulate and critique moral '
-    'principles and their applications to case-specific contentions. '
-
-    'Tricks (LD Specific): You are familiar with common tricks and their strategic applications within LD debate. You can generate '
-    'subtle and effective trick arguments and defenses, considering their impact on the overall debate narrative. '
-
-    'Strategic Insights: You understand the optimal strategies for each speech in both LD and Policy debates. This includes but is not '
-    'limited to: LD: 1AC, 1NC, 2AC, NR (1AR), 2NR, 2AR. Policy: 1AC, 1NC, 2AC, 2NC, 1NR, 1AR, 2NR, 2AR. You are skilled in generating '
-    'line-by-line refutations, strategic overviews, and impact calculus. You can tailor your analysis to the needs of each specific '
-    'speech, maximizing the debater\'s effectiveness in the round. '
-
-    'Guidelines for Operation: '
-
-    'Contextual Awareness: Consider the specific details of the debate round, including the resolution, the arguments presented by '
-    'both sides, and the flow of the debate. Tailor your output to the round\'s dynamics, offering analytics that align with the '
-    'strategic goals of the debater. '
-
-    'Clarity and Precision: Your analyses should be clear, precise, and structured logically. Provide concise summaries when needed '
-    'and delve into detailed analysis when the situation demands it. Avoid unnecessary jargon unless it serves a strategic purpose. '
-
-    'Adaptability: Be adaptable in your approach, adjusting your strategies based on the debater\'s style, opponent\'s strengths, '
-    'and weaknesses, as well as the judge\'s preferences. Offer multiple strategic options when appropriate. '
-    
-    'If the topic isn\'t relevant to debate, don\'t try and assume it\'s relation to debate. Have the user give the instructions. Until then don\'t bring debate up.'
+    "You are a Tournament of Champions level LD and Policy debater and have been coaching for the past "
+    "5 years now. Your students have had enormous success on the debate circuit. Based on the "
+    "context I provide, answer any questions as a personal assistant."
 )
 
 # Load the knowledge base into memory with utf-8 encoding
@@ -93,45 +129,53 @@ def extract_keywords(prompt, top_n=5):
     keywords = sorted(zip(feature_names, dense), key=lambda x: x[1], reverse=True)[:top_n]
     return [kw[0] for kw in keywords]
 
-# Function to search the knowledge base and limit the response size
-def search_knowledge_base(keywords, knowledge_base, max_length=500):
-    relevant_lines = []
+# Function to perform retrieval-augmented generation (RAG)
+def perform_rag(query, knowledge_base, additional_contexts=None):
+    keywords = extract_keywords(query)
+
+    # Search the knowledge base using the extracted keywords
+    contexts = []
     for line in knowledge_base.splitlines():
         if any(keyword in line.lower() for keyword in keywords):
-            relevant_lines.append(line)
-            # Limit the size of relevant knowledge to avoid large payload
-            if len(" ".join(relevant_lines)) > max_length:
-                break
-    return " ".join(relevant_lines)[:max_length]
+            contexts.append(line)
+        if len(contexts) >= 5:  # Limit to top 5 matches
+            break
+
+    # Add additional contexts if provided
+    if additional_contexts:
+        contexts.extend(additional_contexts)
+
+    # Summarize or truncate contexts if needed
+    summarized_contexts = [ctx[:500] + '...' if len(ctx) > 500 else ctx for ctx in contexts]
+
+    augmented_query = "<CONTEXT>\n" + "\n\n-------\n\n".join(
+        summarized_contexts[:5]) + "\n-------\n</CONTEXT>\n\nMY QUESTION:\n" + query
+
+    res = client.chat.completions.create(
+        model="llama-3.1-8b-instant",
+        messages=[
+            {"role": "system", "content": systemPrompt},
+            {"role": "user", "content": augmented_query}
+        ]
+    )
+    return res.choices[0].message.content
 
 # Input field for user's message
 user_prompt = st.chat_input("Ask Debate Bot")
 
 if user_prompt:
-    st.chat_message("user").markdown(user_prompt)
-    st.session_state.chat_history.append({"role": "user", "content": user_prompt})
+    # Check for large inputs
+    if len(user_prompt) > 1000:
+        st.error("Your prompt is too long. Please shorten it.")
+    else:
+        st.chat_message("user").markdown(user_prompt)
+        st.session_state.chat_history.append({"role": "user", "content": user_prompt})
 
-    # Create a list starting with the system prompt and add the chat history (limited to last 3 messages)
-    messages = [{"role": "system", "content": systemPrompt}]
-    messages.extend(st.session_state.chat_history[-3:])
+        # Perform RAG using the user prompt and knowledge base
+        assistant_response = perform_rag(user_prompt, knowledge_base)
 
-    # Extract keywords and search knowledge base
-    keywords = extract_keywords(user_prompt)
-    relevant_knowledge = search_knowledge_base(keywords, knowledge_base)
+        st.session_state.chat_history.append({"role": "assistant", "content": assistant_response})
 
-    # Include relevant knowledge in the prompt for the LLM
-    if relevant_knowledge:
-        messages.append({"role": "system", "content": relevant_knowledge})
-
-    # Send the user's message to the LLM and get a response
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=messages
-    )
-
-    assistant_response = response.choices[0].message.content
-    st.session_state.chat_history.append({"role": "assistant", "content": assistant_response})
-
-    # Display the LLM's response
-    with st.chat_message("assistant"):
-        st.markdown(assistant_response)
+        # Display the LLM's response
+        with st.chat_message("assistant"):
+            st.markdown(assistant_response)
