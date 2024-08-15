@@ -86,10 +86,23 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Correctly set the path to the configuration file
 working_dir = os.path.dirname(os.path.abspath(__file__))
-config_data = toml.load(f"{working_dir}/configuration.toml")
+config_file_path = os.path.join(working_dir, 'configuration.toml')
 
-GROQ_API_KEY = config_data["GROQ_API_KEY"]
+# Ensure the configuration file exists
+if not os.path.exists(config_file_path):
+    st.error(f"Configuration file not found at {config_file_path}")
+    st.stop()
+
+# Load the configuration file
+config_data = toml.load(config_file_path)
+
+GROQ_API_KEY = config_data.get("GROQ_API_KEY")
+
+if not GROQ_API_KEY:
+    st.error("GROQ API key not found in the configuration file.")
+    st.stop()
 
 # Save the API key to the environment variable
 os.environ["GROQ_API_KEY"] = GROQ_API_KEY
